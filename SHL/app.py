@@ -60,5 +60,31 @@ def reset_chat():
     session.pop("chat_history", None)
     return redirect(url_for("index"))
 
+@app.route("/query", methods=["POST"])
+def query_api():
+    data = request.get_json()
+    query = data.get("query", "")
+
+    if not query:
+        return jsonify({"error": "No query provided"}), 400
+
+    query_embedding = embed_texts([query])[0]
+    top_docs = retriever.query(query_embedding, k=5)
+    context = "\n\n".join(top_docs)
+    prompt = f"Context:\n{context}\n\nQuestion: {query}\nAnswer:"
+    generated_text = run_llm(prompt)
+
+    if "Answer:" in generated_text:
+        answer = generated_text.split("Answer:")[-1].strip()
+    else:
+        answer = generated_text.strip()
+
+    return jsonify({
+        "query": query,
+        "answer": answer,
+        "context": context
+    })
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0',debug=True)
