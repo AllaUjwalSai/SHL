@@ -65,17 +65,18 @@ def recommend_assessments():
             
             # Construct assessment entry according to specification
             assessment = {
-                "url": row['Product URL'],
+                "url": str(row['Product URL']),
                 "adaptive_support": "No",  # Default value as this field isn't in CSV
-                "description": row['Description'][:500],  # Limit description length
-                "duration": row['duration'],
-                "remote_support": row['Remote Testing'],
-                "test_type": [t.strip() for t in str(row['Test Types']).split(',')]
+                "description": str(row['Description'])[:500],  # Limit description length
+                "duration": int(row['duration']),  # Ensure JSON-safe integer
+                "remote_support": str(row['Remote Testing']),
+                "test_type": [str(t).strip() for t in str(row['Test Types']).split(',')]
             }
             recommended_assessments.append(assessment)
         except Exception as e:
             app.logger.error(f"Error processing document: {e}")
             continue
+
 
     # Ensure minimum 1 and maximum 10 assessments
     if not recommended_assessments:
